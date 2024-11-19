@@ -64,7 +64,7 @@ const App = () => {
                         <a href="https://x.com/pixmefun" target="_blank" rel="noopener noreferrer">
                             <img src="/x.png" alt="Twitter"/>
                         </a>
-                        <a href="" target="_blank" rel="noopener noreferrer">
+                        <a href="https://pump.fun/coin/CGFxXhaqa5FmwVfyMain6rA3WSqQHfzZzN9SCNjApump" target="_blank" rel="noopener noreferrer">
                             <img src="/dex.png" alt="Graph"/>
                         </a>
                     </div>
