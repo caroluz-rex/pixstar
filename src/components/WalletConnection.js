@@ -24,7 +24,7 @@ window.Buffer = window.Buffer || require('buffer').Buffer;
 
 
 const WalletConnection = ({ setWalletAddress }) => {
-    const endpoint = useMemo(() => clusterApiUrl('devnet'), []);
+    const endpoint = useMemo(() => clusterApiUrl('mainnet-beta'), []);
     const wallets = useMemo(
         () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
         []
