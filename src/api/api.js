@@ -1,7 +1,7 @@
 // src/api/api.js
 
 export const createTeam = async (teamName) => {
-    const response = await fetch('/api/teams/create', {
+    const response = await fetch('http://localhost:8080/api/teams/create', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -16,7 +16,7 @@ export const createTeam = async (teamName) => {
 };
 
 export const getTeams = async () => {
-    const response = await fetch('/api/teams', {
+    const response = await fetch('http://localhost:8080/api/teams', {
         method: 'GET',
         credentials: 'include', // Include cookies
     });
@@ -27,7 +27,7 @@ export const getTeams = async () => {
 };
 
 export const getTeamMembers = async (teamId) => {
-    const response = await fetch(`/api/teams/members?teamId=${teamId}`, {
+    const response = await fetch(`http://localhost:8080/api/teams/members?teamId=${teamId}`, {
         method: 'GET',
         credentials: 'include', // Include cookies
     });
@@ -38,7 +38,7 @@ export const getTeamMembers = async (teamId) => {
 };
 
 export const getMe = async () => {
-    const response = await fetch('/api/me', {
+    const response = await fetch('http://localhost:8080/api/me', {
         method: 'GET',
         credentials: 'include', // Include cookies
     });
@@ -50,7 +50,7 @@ export const getMe = async () => {
 
 
 export const joinTeam = async (teamId) => {
-    const response = await fetch('/api/teams/join', {
+    const response = await fetch('http://localhost:8080/api/teams/join', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export const joinTeam = async (teamId) => {
 };
 
 export const leaveTeam = async (teamId) => {
-    const response = await fetch('/api/teams/leave', {
+    const response = await fetch('http://localhost:8080/api/teams/leave', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

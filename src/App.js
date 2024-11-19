@@ -58,13 +58,13 @@ const App = () => {
                 {/* Боковая панель */}
                 <div className="side-panel">
                     <div className="win98-icons">
-                        <a href="https://t.me" target="_blank" rel="noopener noreferrer">
+                        <a href="https://t.me/pixme_battle_portal" target="_blank" rel="noopener noreferrer">
                             <img src="/telegram.png" alt="Telegram"/>
                         </a>
-                        <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+                        <a href="https://x.com/pixmefun" target="_blank" rel="noopener noreferrer">
                             <img src="/x.png" alt="Twitter"/>
                         </a>
-                        <a href="https://example.com/graph" target="_blank" rel="noopener noreferrer">
+                        <a href="" target="_blank" rel="noopener noreferrer">
                             <img src="/dex.png" alt="Graph"/>
                         </a>
                     </div>
