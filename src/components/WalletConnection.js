@@ -52,7 +52,7 @@ const WalletButton = ({ setWalletAddress }) => {
                 setIsAuthenticating(true);
                 try {
                     // Шаг 1: Получаем nonce от сервера
-                    const challengeResponse = await fetch('http://localhost:8080/get-challenge', {
+                    const challengeResponse = await fetch('/get-challenge', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
