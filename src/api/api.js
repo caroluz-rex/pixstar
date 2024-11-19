@@ -27,7 +27,7 @@ export const getTeams = async () => {
 };
 
 export const getTeamMembers = async (teamId) => {
-    const response = await fetch(`/api/members?teamId=${teamId}`, {
+    const response = await fetch(`/api/team/members?teamId=${teamId}`, {
         method: 'GET',
         credentials: 'include', // Include cookies
     });
@@ -50,7 +50,7 @@ export const getMe = async () => {
 
 
 export const joinTeam = async (teamId) => {
-    const response = await fetch('/api/join', {
+    const response = await fetch('/api/teams/join', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -65,7 +65,7 @@ export const joinTeam = async (teamId) => {
 };
 
 export const leaveTeam = async (teamId) => {
-    const response = await fetch('/api/leave', {
+    const response = await fetch('/api/teams/leave', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
