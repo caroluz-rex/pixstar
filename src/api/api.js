@@ -27,7 +27,7 @@ export const getTeams = async () => {
 };
 
 export const getTeamMembers = async (teamId) => {
-    const response = await fetch(`/api/team/members?teamId=${teamId}`, {
+    const response = await fetch(`/api/teams/members?teamId=${teamId}`, {
         method: 'GET',
         credentials: 'include', // Include cookies
     });
