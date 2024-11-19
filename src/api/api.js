@@ -1,43 +1,80 @@
 // src/api/api.js
 
-// Заглушки для будущих эндпоинтов
+export const createTeam = async (teamName) => {
+    const response = await fetch('http://localhost:8080/teams/create', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name: teamName }),
+        credentials: 'include', // Include cookies
+    });
+    if (!response.ok) {
+        throw new Error('Failed to create team');
+    }
+    return response.json();
+};
 
 export const getTeams = async () => {
-    // Здесь будет запрос к бэкенду для получения списка команд
-    return [
-        { id: 1, name: 'Команда А', members: ['Wallet1', 'Wallet2'] },
-        { id: 2, name: 'Команда Б', members: ['Wallet3'] },
-    ];
-};
-
-export const joinTeam = async (teamId, walletAddress) => {
-    // Запрос на присоединение к команде
-    console.log(`Присоединение ${walletAddress} к команде ${teamId}`);
-};
-
-export const createTeam = async (teamName, walletAddress) => {
-    // Запрос на создание команды
-    console.log(`Создание команды ${teamName} пользователем ${walletAddress}`);
+    const response = await fetch('http://localhost:8080/teams', {
+        method: 'GET',
+        credentials: 'include', // Include cookies
+    });
+    if (!response.ok) {
+        throw new Error('Failed to fetch teams');
+    }
+    return response.json();
 };
 
 export const getTeamMembers = async (teamId) => {
-    // Здесь будет запрос к бэкенду для получения списка участников команды
-    // Моковые данные
-    if (teamId === 1) {
-        return ['Wallet1', 'Wallet2'];
-    } else if (teamId === 2) {
-        return ['Wallet3'];
-    } else {
-        return [];
+    const response = await fetch(`http://localhost:8080/teams/members?teamId=${teamId}`, {
+        method: 'GET',
+        credentials: 'include', // Include cookies
+    });
+    if (!response.ok) {
+        throw new Error('Failed to get team members');
     }
+    return response.json();
 };
 
-export const sendPixelData = async (pixelData) => {
-    // Здесь будет запрос к бэкенду для сохранения пикселя
-    // Например:
-    // await fetch('/api/pixels', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(pixelData),
-    // });
+export const getMe = async () => {
+    const response = await fetch('http://localhost:8080/me', {
+        method: 'GET',
+        credentials: 'include', // Include cookies
+    });
+    if (!response.ok) {
+        throw new Error('Not authenticated');
+    }
+    return response.json();
+};
+
+
+export const joinTeam = async (teamId) => {
+    const response = await fetch('http://localhost:8080/teams/join', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ teamId }),
+        credentials: 'include',
+    });
+    if (!response.ok) {
+        throw new Error('Failed to join team');
+    }
+    return response.json();
+};
+
+export const leaveTeam = async (teamId) => {
+    const response = await fetch('http://localhost:8080/teams/leave', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ teamId }),
+        credentials: 'include',
+    });
+    if (!response.ok) {
+        throw new Error('Failed to leave team');
+    }
+    return response.json();
 };

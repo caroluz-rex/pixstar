@@ -1,15 +1,19 @@
 html, body, #root {
+  height: 100%;
+  overflow-y: auto; /* Включаем прокрутку для всего документа */
   margin: 0;
   padding: 0;
-  width: 100%;
+}
+
+.window {
+  box-sizing: border-box;
+}
+
+.app {
   height: 100%;
-  overflow: hidden; /* Отключаем прокрутку */
 }
 
-h3 {
-  margin-top: 0;
-}
-
-input, button {
-  font-size: 16px;
+@media (max-width: 768px) {
+  /* Стили для мобильных устройств */
+  /* Например, уменьшить размеры некоторых элементов */
 }

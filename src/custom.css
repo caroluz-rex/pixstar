@@ -1,0 +1,195 @@
+/* src/custom.css */
+
+/* Изменение градиента заголовка окна */
+.title-bar {
+    background: url("./image/solanaGradient.jpg") no-repeat center center !important;
+    border-bottom: 2px solid #000; /* Толщина границы */
+    font-size: 16px;
+}
+
+/* Изменение градиента активного заголовка окна */
+.title-bar.active {
+    background: url("./image/solanaGradient.jpg") no-repeat center center !important;
+}
+
+/* Изменение градиента неактивного заголовка окна */
+.title-bar.inactive {
+    background: url("./image/solanaGradient.jpg") no-repeat center center !important;
+}
+
+/* Изменение градиента тела окна (опционально) */
+.window-body {
+    background: url("./image/solanaGradient.jpg") no-repeat center center !important;
+    border: 2px solid #000; /* Толщина границы */
+    margin: 5px;
+}
+
+/* styles.css */
+.win98-icons {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.win98-icons img {
+    width: 64px;
+    height: 64px;
+    margin: 5px;
+    cursor: pointer;
+    border: 1px solid #000;
+}
+
+.win98-icons img:hover {
+    background-color: #c0c0c0;
+}
+
+/* Устанавливаем цвет фона Windows 98 */
+body {
+    background-color: #C0C0C0;
+    margin: 0;
+    padding: 0;
+}
+
+html, body, #root {
+    height: 100%;
+}
+
+.app-container {
+    display: flex;
+    flex-direction: row; /* По умолчанию располагаем элементы по горизонтали */
+    height: 100%;
+}
+
+.main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.side-panel {
+    width: 300px;
+    min-width: 200px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Стили для контейнера канваса */
+.canvas-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    margin-bottom: 10px;
+    overflow: hidden;
+    touch-action: none;
+}
+
+.wallet-button-container-mobile {
+    display: none;
+}
+
+.wallet-button-container-mobile-side {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .wallet-button-container-mobile {
+        display: flex;
+    }
+
+    .app-container {
+        flex-direction: column; /* Размещаем элементы вертикально */
+        height: auto; /* Убираем ограничение по высоте */
+        overflow-y: auto; /* Включаем вертикальную прокрутку */
+    }
+
+    .main-content {
+        order: 1; /* Основная область выше */
+        flex: none;
+        height: auto; /* Контент может занимать необходимую высоту */
+    }
+
+    .side-panel {
+        order: 2; /* Боковая панель ниже */
+        width: 100%; /* Занимает всю ширину */
+        min-width: unset; /* Убираем минимальную ширину */
+        overflow-y: visible; /* Разрешаем содержимому быть видимым */
+        padding-bottom: 10px; /* Отступ снизу */
+        padding-top: 50px; /* Добавляем отступ, чтобы элементы не перекрывались кнопкой */
+    }
+
+    .canvas-container {
+        min-height: 300px; /* Минимальная высота канваса */
+        overflow: hidden; /* Убираем лишний контент */
+    }
+    .wallet-connection {
+        position: absolute; /* Абсолютное позиционирование */
+        top: 10px; /* Отступ от верхнего края */
+        left: 50%; /* Центрируем по горизонтали */
+        transform: translateX(-50%); /* Сдвигаем на половину ширины, чтобы центрировать */
+        z-index: 10000; /* Убедитесь, что кнопка отображается выше других элементов */
+    }
+    .wallet-button-container-mobile {
+        position: fixed; /* Фиксируем позицию кнопки */
+        top: 10px; /* Отступ от верхнего края */
+        left: 50%; /* Центрируем по горизонтали */
+        transform: translateX(-50%); /* Центрирование по оси X */
+        z-index: 1000; /* Убедимся, что кнопка над другими элементами */
+    }
+    .wallet-button-container {
+        display: none;
+    }
+    .wallet-button-container-mobile-side {
+        position: fixed; /* Фиксируем позицию кнопки */
+        top: 10px; /* Отступ от верхнего края */
+        left: 50%; /* Центрируем по горизонтали */
+        transform: translateX(-50%); /* Центрирование по оси X */
+        z-index: 1000; /* Убедимся, что кнопка над другими элементами */
+    }
+    /* Оверлей для затемнения экрана */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6); /* Полупрозрачный чёрный фон */
+        z-index: 1000; /* Отображается поверх всего */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .wallet-button-container button {
+        font-size: 30px; /* Увеличиваем размер текста */
+        padding: 40px 40px; /* Увеличиваем размер кнопки */
+        background-color: #7260ff; /* Цвет кнопки */
+        color: #ffffff; /* Цвет текста */
+        border: none; /* Убираем границу */
+        border-radius: 20px; /* Скруглённые края */
+        cursor: pointer; /* Указатель при наведении */
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); /* Тень */
+        transition: transform 0.2s, box-shadow 0.2s; /* Анимация при наведении */
+    }
+
+    .wallet-button-container button:hover {
+        transform: scale(1.1); /* Увеличиваем кнопку при наведении */
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4); /* Увеличиваем тень */
+    }
+
+    /* Размытие основного контента */
+    .blurred {
+        filter: blur(5px); /* Применяем размытие */
+        pointer-events: none; /* Делаем элементы некликабельными */
+    }
+
+}
+
+
+.wallet-address {
+    margin: 10px 0;
+    font-size: 1rem;
+    font-weight: bold;
+    text-align: center;
+    color: #333; /* Цвет текста */
+}

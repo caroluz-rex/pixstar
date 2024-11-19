@@ -1,35 +1,45 @@
-// src/components/Canvas.js
 import React, { useState, useRef, useEffect } from 'react';
-import { Stage, Layer, Rect } from 'react-konva';
+import { Stage, Layer, Rect, Image as KonvaImage } from 'react-konva';
+import { useWebSocket } from './WebSocketProvider';
+import Notification from './Notification';
+import CoordinatesWindow from './CoordinatesWindow';
 
-// Определяем размер одного пикселя (квадратный)
-const PIXEL_SIZE = 14; // Размер одного пикселя по обоим осям в пикселях
-const PIXEL_COUNT_X = 500; // Количество пикселей по оси X
-const PIXEL_COUNT_Y = 300;  // Количество пикселей по оси Y
-const CANVAS_SIZE_X = PIXEL_SIZE * PIXEL_COUNT_X; // Размер канваса по оси X
-const CANVAS_SIZE_Y = PIXEL_SIZE * PIXEL_COUNT_Y; // Размер канваса по оси Y
+const PIXEL_SIZE = 14;
+const PIXEL_COUNT_X = 500;
+const PIXEL_COUNT_Y = 300;
+const CANVAS_SIZE_X = PIXEL_SIZE * PIXEL_COUNT_X;
+const CANVAS_SIZE_Y = PIXEL_SIZE * PIXEL_COUNT_Y;
+const STROKE_WIDTH = 2;
 
-const BUFFER_CANVASES = 1; // Количество канвасов для буферной зоны
-
-// Определяем толщину обводки
-const STROKE_WIDTH = 2; // Толщина обводки в пикселях
-
-const Canvas = ({ selectedColor, setCursorPosition }) => {
-    const [pixels, setPixels] = useState({});
+const Canvas = ({ selectedColor, setCursorPosition, cursorPosition, pixels, isAuthenticated }) => {
     const [hoveredPixel, setHoveredPixel] = useState(null);
     const stageRef = useRef(null);
     const containerRef = useRef(null);
+    const { sendPixel } = useWebSocket();
+    const [lastDrawTime, setLastDrawTime] = useState(0);
+    const [dimensions, setDimensions] = useState({ width: 800, height: 640 });
+    const [notifications, setNotifications] = useState([]);
+    const imageRef = useRef(null); // Ref for Konva.Image
+    const updateBuffer = useRef([]); // Буфер для обновлений пикселей
+    const canvasRef = useRef(document.createElement('canvas')); // Canvas для рисования
 
-    // Состояние для размеров контейнера
-    const [dimensions, setDimensions] = useState({
-        width: 800,  // Ширина поля зрения (можно настроить)
-        height: 640, // Высота поля зрения (соотношение 5:4)
-    });
+    const minScale = 0.1;
+    const maxScale = 20;
 
-    const minScale = 0.1; // Минимальный масштаб (для предотвращения полного исчезновения канваса)
-    const maxScale = 20; // Максимальный масштаб
+    useEffect(() => {
+        const updateSize = () => {
+            if (containerRef.current) {
+                const width = containerRef.current.offsetWidth;
+                const height = containerRef.current.offsetHeight;
+                setDimensions({ width, height });
+            }
+        };
 
-    // Устанавливаем начальный масштаб, чтобы весь канвас был виден
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
+    }, []);
+
     useEffect(() => {
         const stage = stageRef.current;
         if (stage) {
@@ -43,36 +53,6 @@ const Canvas = ({ selectedColor, setCursorPosition }) => {
         }
     }, [dimensions]);
 
-    // Обновляем размеры контейнера при изменении размера окна
-    useEffect(() => {
-        const updateSize = () => {
-            if (containerRef.current) {
-                const width = containerRef.current.offsetWidth;
-                const height = containerRef.current.offsetHeight;
-                setDimensions({
-                    width,
-                    height,
-                });
-            }
-        };
-
-        updateSize();
-
-        window.addEventListener('resize', updateSize);
-        return () => {
-            window.removeEventListener('resize', updateSize);
-        };
-    }, []);
-
-    // Отключаем антиалиасинг
-    useEffect(() => {
-        const layer = stageRef.current.getLayers()[0];
-        if (layer) {
-            layer.getContext().imageSmoothingEnabled = false;
-        }
-    }, []);
-
-    // Обработчик колесика мыши для зумирования
     const handleWheel = (e) => {
         e.evt.preventDefault();
         const stage = stageRef.current;
@@ -84,9 +64,6 @@ const Canvas = ({ selectedColor, setCursorPosition }) => {
         let newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
 
         newScale = Math.max(minScale, Math.min(newScale, maxScale));
-
-        // Округляем масштаб до двух знаков после запятой
-        newScale = Math.round(newScale * 100) / 100;
 
         stage.scale({ x: newScale, y: newScale });
 
@@ -107,7 +84,6 @@ const Canvas = ({ selectedColor, setCursorPosition }) => {
         stage.batchDraw();
     };
 
-    // Обработчик перемещения мыши для подсветки пикселя
     const handleMouseMove = (e) => {
         const stage = stageRef.current;
         const scale = stage.scaleX();
@@ -131,14 +107,18 @@ const Canvas = ({ selectedColor, setCursorPosition }) => {
         }
     };
 
-    // Обработчик выхода курсора с канваса
-    const handleMouseOut = () => {
-        setHoveredPixel(null);
-        setCursorPosition({ x: null, y: null });
-    };
-
-    // Обработчик клика по канвасу
     const handleCanvasClick = (e) => {
+        if (!isAuthenticated) {
+            showNotification('You must connect wallet before drawing');
+            return;
+        }
+
+        const currentTime = Date.now();
+        if (currentTime - lastDrawTime < 2000) {
+            showNotification('COOLDOWN 2 SEC');
+            return;
+        }
+
         const stage = stageRef.current;
         const scale = stage.scaleX();
         const pointer = stage.getPointerPosition();
@@ -147,133 +127,136 @@ const Canvas = ({ selectedColor, setCursorPosition }) => {
         const y = Math.floor((pointer.y - stage.y()) / (PIXEL_SIZE * scale));
 
         if (x >= 0 && x < PIXEL_COUNT_X && y >= 0 && y < PIXEL_COUNT_Y) {
-            const key = `${x}-${y}`;
-
-            setPixels({
-                ...pixels,
-                [key]: {
-                    x: x * PIXEL_SIZE,
-                    y: y * PIXEL_SIZE,
-                    color: selectedColor,
-                },
-            });
-
-            // Здесь можно отправить данные на бэкенд о закрашенном пикселе
+            const newPixel = { x, y, color: selectedColor };
+            sendPixel(newPixel);
+            updateBuffer.current.push(newPixel); // Сохраняем изменения в буфер
+            setLastDrawTime(currentTime);
         }
     };
 
-    // Функция для ограничения позиции Stage
-    const boundDrag = (pos) => {
-        const stage = stageRef.current;
-        if (!stage) return pos;
-
-        const scale = stage.scaleX();
-        let x = pos.x;
-        let y = pos.y;
-
-        // Ограничиваем по
-
-        // Логирование для отладки
-        console.log(`DragBound: x=${x}, y=${y}, scale=${scale}`);
-
-        return {
-            x: Math.round(x),
-            y: Math.round(y),
-        };
+    const showNotification = (message) => {
+        const id = Date.now();
+        setNotifications((prev) => [...prev, { id, message }]);
+        setTimeout(() => {
+            setNotifications((prev) => prev.filter((n) => n.id !== id));
+        }, 3000);
     };
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (updateBuffer.current.length > 0) {
+                const ctx = canvasRef.current.getContext('2d');
+                updateBuffer.current.forEach(({ x, y, color }) => {
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+                });
+                updateBuffer.current = []; // Очищаем буфер
+                const img = imageRef.current;
+                if (img) {
+                    img.image(canvasRef.current);
+                    img.getLayer().batchDraw();
+                }
+            }
+        }, 50); // Частота обновления 50 мс
+
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        canvas.width = PIXEL_COUNT_X * PIXEL_SIZE;
+        canvas.height = PIXEL_COUNT_Y * PIXEL_SIZE;
+        const ctx = canvas.getContext('2d');
+
+        // Первоначальная отрисовка
+        Object.values(pixels).forEach(({ x, y, color }) => {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * PIXEL_SIZE, y * PIXEL_SIZE, PIXEL_SIZE, PIXEL_SIZE);
+        });
+
+        const img = imageRef.current;
+        if (img) {
+            img.image(canvas);
+            img.getLayer().batchDraw();
+        }
+    }, [pixels]);
 
     return (
         <div
             ref={containerRef}
+            className="window canvas-container"
             style={{
-                border: '1px solid #000', // Черная граница контейнера
                 width: '100%',
                 height: '100%',
+                minWidth: '300px',
+                minHeight: '300px',
                 position: 'relative',
                 overflow: 'hidden',
                 touchAction: 'none',
-                backgroundColor: '#ccc', // Фоновый цвет контейнера
-                aspectRatio: `${CANVAS_SIZE_X} / ${CANVAS_SIZE_Y}`, // Сохранение соотношения сторон 5:4
+                marginBottom: '10px',
             }}
         >
-            <Stage
-                width={dimensions.width}
-                height={dimensions.height}
-                onClick={handleCanvasClick}
-                onWheel={handleWheel}
-                onMouseMove={handleMouseMove}
-                onMouseOut={handleMouseOut}
-                ref={stageRef}
-                draggable={true} // Разрешаем перетаскивание
-                dragBoundFunc={boundDrag} // Ограничиваем позицию
-                style={{ background: '#fff', imageRendering: 'pixelated' }}
-                pixelRatio={1}
-            >
-                <Layer listening={true}>
-                    {/* Рисуем канвас как белый прямоугольник с внутренней черной обводкой */}
-                    <Rect
-                        x={STROKE_WIDTH / 2} // Смещаем на половину толщины обводки
-                        y={STROKE_WIDTH / 2}
-                        width={CANVAS_SIZE_X - STROKE_WIDTH} // Уменьшаем ширину на полную толщину обводки
-                        height={CANVAS_SIZE_Y - STROKE_WIDTH}
-                        fill="#fff"
-                        stroke="#000"
-                        strokeWidth={STROKE_WIDTH} // Толщина обводки
-                        listening={false}
-                    />
-
-                    {/* Рисуем закрашенные пиксели */}
-                    {Object.values(pixels).map((pixel) => (
+            <div className="title-bar">
+                <div className="title-bar-text">PIXEL.sol</div>
+            </div>
+            <div className="window-body" style={{ padding: 0, width: '100%', height: '100%' }}>
+                <CoordinatesWindow cursorPosition={cursorPosition} />
+                <Stage
+                    width={dimensions.width}
+                    height={dimensions.height}
+                    onMouseDown={handleCanvasClick}
+                    onWheel={handleWheel}
+                    onMouseMove={handleMouseMove}
+                    ref={stageRef}
+                    draggable
+                >
+                    <Layer>
                         <Rect
-                            key={`${pixel.x}-${pixel.y}`}
-                            x={pixel.x}
-                            y={pixel.y}
-                            width={PIXEL_SIZE}
-                            height={PIXEL_SIZE}
-                            fill={pixel.color}
-                            listening={false}
-                        />
-                    ))}
-
-                    {/* Подсвечиваем пиксель при наведении с внутренней обводкой */}
-                    {hoveredPixel && (
-                        <Rect
-                            x={hoveredPixel.x + STROKE_WIDTH / 2} // Смещаем на половину толщины обводки
-                            y={hoveredPixel.y + STROKE_WIDTH / 2}
-                            width={PIXEL_SIZE - STROKE_WIDTH} // Уменьшаем ширину на полную толщину обводки
-                            height={PIXEL_SIZE - STROKE_WIDTH}
-                            fill={selectedColor}
+                            x={STROKE_WIDTH / 2}
+                            y={STROKE_WIDTH / 2}
+                            width={CANVAS_SIZE_X - STROKE_WIDTH}
+                            height={CANVAS_SIZE_Y - STROKE_WIDTH}
+                            fill="#fff"
                             stroke="#000"
-                            strokeWidth={STROKE_WIDTH} // Толщина обводки
-                            opacity={0.5}
+                            strokeWidth={STROKE_WIDTH}
                             listening={false}
                         />
-                    )}
-                </Layer>
-                <Layer listening={true}>
-                    {/* Рисуем канвас */}
-                    {/* ... другие элементы */}
-                    {/* Рисуем закрашенные пиксели */}
-                    {Object.values(pixels).map((pixel) => (
-                        <Rect
-                            key={`${pixel.x}-${pixel.y}`}
-                            x={pixel.x}
-                            y={pixel.y}
-                            width={PIXEL_SIZE}
-                            height={PIXEL_SIZE}
-                            fill={pixel.color}
+                        <KonvaImage
+                            x={0}
+                            y={0}
+                            width={CANVAS_SIZE_X}
+                            height={CANVAS_SIZE_Y}
+                            ref={imageRef}
                             listening={false}
                         />
+                        {hoveredPixel && (
+                            <Rect
+                                x={hoveredPixel.x + STROKE_WIDTH / 2}
+                                y={hoveredPixel.y + STROKE_WIDTH / 2}
+                                width={PIXEL_SIZE - STROKE_WIDTH}
+                                height={PIXEL_SIZE - STROKE_WIDTH}
+                                fill={selectedColor}
+                                stroke="#000"
+                                strokeWidth={STROKE_WIDTH}
+                                opacity={0.5}
+                                listening={false}
+                            />
+                        )}
+                    </Layer>
+                </Stage>
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 10,
+                        right: 10,
+                        zIndex: 10,
+                    }}
+                >
+                    {notifications.map((notification) => (
+                        <Notification key={notification.id} message={notification.message} />
                     ))}
-                    {/* Подсвечиваем пиксель */}
-                    {hoveredPixel && (
-                        <Rect
-                            // ... свойства
-                        />
-                    )}
-                </Layer>
-            </Stage>
-
+                </div>
+            </div>
         </div>
     );
 };
