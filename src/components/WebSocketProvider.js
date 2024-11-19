@@ -15,7 +15,7 @@ export const WebSocketProvider = ({ onUpdate, children }) => {
     // Подключение для получения обновлений
     useEffect(() => {
         const connectReceiver = () => {
-            const socket = new WebSocket('http://localhost:8080/ws/receive');
+            const socket = new WebSocket('/ws/receive');
 
             socket.onopen = () => {
                 console.log('WebSocket для получения подключен');
@@ -62,7 +62,7 @@ export const WebSocketProvider = ({ onUpdate, children }) => {
     // Подключение для отправки
     useEffect(() => {
         const connectSender = () => {
-            const socket = new WebSocket('http://localhost:8080/ws/send');
+            const socket = new WebSocket('/ws/send');
 
             socket.onopen = () => {
                 console.log('WebSocket для отправки подключен');
