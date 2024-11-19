@@ -52,7 +52,7 @@ const WalletButton = ({ setWalletAddress }) => {
                 setIsAuthenticating(true);
                 try {
                     // Шаг 1: Получаем nonce от сервера
-                    const challengeResponse = await fetch('/get-challenge', {
+                    const challengeResponse = await fetch('/api/get-challenge', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ const WalletButton = ({ setWalletAddress }) => {
                     const signatureBase64 = Buffer.from(signature).toString('base64');
 
                     // Шаг 3: Отправляем подпись на сервер
-                    const authResponse = await fetch('http://localhost:8080/authenticate', {
+                    const authResponse = await fetch('/api/authenticate', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -135,7 +135,7 @@ const WalletButton = ({ setWalletAddress }) => {
     const handleDisconnect = async () => {
         // Вызываем эндпоинт /logout для удаления куки на сервере
         try {
-            await fetch('http://localhost:8080/logout', {
+            await fetch('/api/logout', {
                 method: 'POST',
                 credentials: 'include',
             });
